@@ -1,114 +1,151 @@
 ---
-import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
 
-const posts = (await getCollection('blog')).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
+const posts = (
+	await getCollection('blog', ({ data }) => {
+		if (import.meta.env.DEV) return true;
+		return !data.draft;
+	})
+).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 ---
 
 <!doctype html>
 <html lang="en">
 	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-		<style>
-			main {
-				width: 960px;
-			}
-			ul {
-				display: flex;
-				flex-wrap: wrap;
-				gap: 2rem;
-				list-style-type: none;
-				margin: 0;
-				padding: 0;
-			}
-			ul li {
-				width: calc(50% - 1rem);
-			}
-			ul li * {
-				text-decoration: none;
-				transition: 0.2s ease;
-			}
-			ul li:first-child {
-				width: 100%;
-				margin-bottom: 1rem;
-				text-align: center;
-			}
-			ul li:first-child img {
-				width: 100%;
-			}
-			ul li:first-child .title {
-				font-size: 2.369rem;
-			}
-			ul li img {
-				margin-bottom: 0.5rem;
-				border-radius: 12px;
-			}
-			ul li a {
-				display: block;
-			}
-			.title {
-				margin: 0;
-				color: rgb(var(--black));
-				line-height: 1;
-			}
-			.date {
-				margin: 0;
-				color: rgb(var(--gray));
-			}
-			ul li a:hover h4,
-			ul li a:hover .date {
-				color: rgb(var(--accent));
-			}
-			ul a:hover img {
-				box-shadow: var(--box-shadow);
-			}
-			@media (max-width: 720px) {
-				ul {
-					gap: 0.5em;
-				}
-				ul li {
-					width: 100%;
-					text-align: center;
-				}
-				ul li:first-child {
-					margin-bottom: 0;
-				}
-				ul li:first-child .title {
-					font-size: 1.563em;
-				}
-			}
-		</style>
+		<BaseHead title="Blog · chenj.dev" description="Posts about DevOps and Platform Engineering." />
 	</head>
 	<body>
 		<Header />
 		<main>
-			<section>
-				<ul>
-					{
-						posts.map((post) => (
-							<li>
-								<a href={`/blog/${post.id}/`}>
-									{post.data.heroImage && (
-										<Image width={720} height={360} src={post.data.heroImage} alt="" />
+			<h1>Blog</h1>
+			<p class="subtitle">Notes from the learning trenches.</p>
+			<hr />
+
+			{
+				posts.length === 0 ? (
+					<div class="empty">
+						<p>No posts yet — I'm just getting started. Check back soon.</p>
+					</div>
+				) : (
+					<ul class="post-list">
+						{posts.map((post) => (
+							<li class="post-item">
+								<a href={`/blog/${post.id}/`} class="post-link">
+									<div class="post-meta">
+										<span class="post-date">
+											<FormattedDate date={post.data.pubDate} />
+										</span>
+										{post.data.draft && <span class="draft-badge">draft</span>}
+									</div>
+									<h2 class="post-title">{post.data.title}</h2>
+									<p class="post-desc">{post.data.description}</p>
+									{post.data.tags && post.data.tags.length > 0 && (
+										<div class="post-tags">
+											{post.data.tags.map((tag) => (
+												<span class="tag">{tag}</span>
+											))}
+										</div>
 									)}
-									<h4 class="title">{post.data.title}</h4>
-									<p class="date">
-										<FormattedDate date={post.data.pubDate} />
-									</p>
 								</a>
 							</li>
-						))
-					}
-				</ul>
-			</section>
+						))}
+					</ul>
+				)
+			}
 		</main>
 		<Footer />
 	</body>
 </html>
+
+<style>
+	h1 {
+		margin-bottom: 0.25rem;
+	}
+
+	.subtitle {
+		color: var(--text-muted);
+		margin-bottom: 1.75rem;
+	}
+
+	.empty {
+		padding: 3rem 0;
+		color: var(--text-muted);
+	}
+
+	.post-list {
+		list-style: none;
+		padding: 0;
+		margin: 1.5rem 0 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0;
+	}
+
+	.post-item {
+		border-bottom: 1px solid var(--border);
+	}
+
+	.post-item:first-child {
+		border-top: 1px solid var(--border);
+	}
+
+	.post-link {
+		display: block;
+		padding: 1.5rem 0;
+		text-decoration: none;
+		color: inherit;
+		transition: none;
+	}
+
+	.post-link:hover .post-title {
+		color: var(--accent);
+	}
+
+	.post-meta {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		margin-bottom: 0.35rem;
+	}
+
+	.post-date {
+		font-size: 0.8rem;
+		color: var(--text-muted);
+		font-variant-numeric: tabular-nums;
+	}
+
+	.draft-badge {
+		font-size: 0.7rem;
+		font-weight: 600;
+		color: #b45309;
+		background: #fef3c7;
+		padding: 0.1em 0.5em;
+		border-radius: 4px;
+		letter-spacing: 0.03em;
+	}
+
+	.post-title {
+		font-size: 1.15rem;
+		margin: 0 0 0.4rem;
+		line-height: 1.3;
+		color: var(--text);
+		transition: color 0.15s;
+	}
+
+	.post-desc {
+		font-size: 0.9rem;
+		color: var(--text-muted);
+		margin: 0 0 0.75rem;
+		line-height: 1.55;
+	}
+
+	.post-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.35rem;
+	}
+</style>

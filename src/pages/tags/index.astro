@@ -1,0 +1,90 @@
+---
+import { getCollection } from 'astro:content';
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import Header from '../../components/Header.astro';
+
+const posts = await getCollection('blog', ({ data }) => {
+	if (import.meta.env.DEV) return true;
+	return !data.draft;
+});
+
+const tagCounts = new Map<string, number>();
+for (const post of posts) {
+	for (const tag of post.data.tags ?? []) {
+		tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+	}
+}
+
+const tags = [...tagCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title="Tags · chenj.dev" description="Browse posts by topic." />
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>Tags</h1>
+			<p class="subtitle">Browse posts by topic.</p>
+			<hr />
+
+			{
+				tags.length === 0 ? (
+					<p class="empty">No tags yet — posts will appear here once published.</p>
+				) : (
+					<ul class="tag-list">
+						{tags.map(([tag, count]) => (
+							<li>
+								<a href={`/tags/${tag}`} class="tag-item">
+									<span class="tag">{tag}</span>
+									<span class="count">{count}</span>
+								</a>
+							</li>
+						))}
+					</ul>
+				)
+			}
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<style>
+	h1 {
+		margin-bottom: 0.25rem;
+	}
+
+	.subtitle {
+		color: var(--text-muted);
+		margin-bottom: 1.75rem;
+	}
+
+	.empty {
+		color: var(--text-muted);
+		padding: 2rem 0;
+	}
+
+	.tag-list {
+		list-style: none;
+		padding: 0;
+		margin: 1.5rem 0 0;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+	}
+
+	.tag-item {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		text-decoration: none;
+	}
+
+	.count {
+		font-size: 0.8rem;
+		color: var(--text-muted);
+	}
+</style>
