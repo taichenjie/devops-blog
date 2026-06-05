@@ -1,0 +1,138 @@
+---
+import { getCollection } from 'astro:content';
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import FormattedDate from '../../components/FormattedDate.astro';
+import Header from '../../components/Header.astro';
+
+const notes = (
+	await getCollection('notes', ({ data }) => {
+		if (import.meta.env.DEV) return true;
+		return !data.draft;
+	})
+).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title="Notes · chenj.dev" description="Small snippets of things I've learned." />
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>Notes</h1>
+			<p class="subtitle">Small things I've picked up along the way.</p>
+			<hr />
+
+			{
+				notes.length === 0 ? (
+					<div class="empty">
+						<p>No notes yet — check back soon.</p>
+					</div>
+				) : (
+					<ul class="post-list">
+						{notes.map((note) => (
+							<li class="post-item">
+								<a href={`/notes/${note.id}/`} class="post-link">
+									<div class="post-meta">
+										<span class="post-date">
+											<FormattedDate date={note.data.pubDate} />
+										</span>
+										{note.data.draft && <span class="draft-badge">draft</span>}
+									</div>
+									<h2 class="post-title">{note.data.title}</h2>
+									<p class="post-desc">{note.data.description}</p>
+								</a>
+							</li>
+						))}
+					</ul>
+				)
+			}
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<style>
+	h1 {
+		margin-bottom: 0.25rem;
+	}
+
+	.subtitle {
+		color: var(--text-muted);
+		margin-bottom: 1.75rem;
+	}
+
+	.empty {
+		padding: 3rem 0;
+		color: var(--text-muted);
+	}
+
+	.post-list {
+		list-style: none;
+		padding: 0;
+		margin: 1.5rem 0 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0;
+	}
+
+	.post-item {
+		border-bottom: 1px solid var(--border);
+	}
+
+	.post-item:first-child {
+		border-top: 1px solid var(--border);
+	}
+
+	.post-link {
+		display: block;
+		padding: 1.5rem 0;
+		text-decoration: none;
+		color: inherit;
+		transition: none;
+	}
+
+	.post-link:hover .post-title {
+		color: var(--accent);
+	}
+
+	.post-meta {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		margin-bottom: 0.35rem;
+	}
+
+	.post-date {
+		font-size: 0.8rem;
+		color: var(--text-muted);
+		font-variant-numeric: tabular-nums;
+	}
+
+	.draft-badge {
+		font-size: 0.7rem;
+		font-weight: 600;
+		color: #b45309;
+		background: #fef3c7;
+		padding: 0.1em 0.5em;
+		border-radius: 4px;
+		letter-spacing: 0.03em;
+	}
+
+	.post-title {
+		font-size: 1.15rem;
+		margin: 0 0 0.4rem;
+		line-height: 1.3;
+		color: var(--text);
+		transition: color 0.15s;
+	}
+
+	.post-desc {
+		font-size: 0.9rem;
+		color: var(--text-muted);
+		margin: 0;
+		line-height: 1.55;
+	}
+</style>
