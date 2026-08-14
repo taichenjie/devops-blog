@@ -2,7 +2,7 @@
 title: "Replacing the $32/Month NAT Gateway with a $4 NAT Instance"
 description: "I needed private subnet egress on AWS. The managed NAT Gateway costs $32/month before any traffic. I built a self-managed NAT instance for $4 instead, and documented exactly what I gave up."
 pubDate: 2026-08-14
-draft: true
+draft: false
 ---
 
 I needed private subnet internet access. Every instance in my VPC sits in a private subnet with no public IP, which is the security design of the architecture. Nothing is publicly addressable. But private instances still need outbound access for package updates, SSM agent registration, and pulling container images.
