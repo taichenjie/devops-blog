@@ -2,7 +2,7 @@
 title: "A Step-by-Step Guide to Refactoring Terraform Modules Without Destroying Infrastructure"
 description: "The rules and sequence for extracting resources into modules using moved blocks, based on real refactoring across two PRs."
 pubDate: 2026-08-28
-draft: true
+draft: false
 ---
 
 I am building a portfolio infrastructure project on AWS using Terraform. During M2 I extracted IAM and compute resources into their own modules using moved blocks across two separate PRs. These are the rules I follow for any Terraform refactoring that changes resource addresses.
